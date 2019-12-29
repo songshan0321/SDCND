@@ -70,7 +70,7 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
 
 ### 2. Result on test video
 
-<video src="test_videos/solidWhiteRight.mp4"></video>
+<video src="test_videos_output/solidWhiteRight.mp4"></video>
 
 ### 3. Identify potential shortcomings with current pipeline
 
