@@ -32,7 +32,7 @@ I then used the output `objpoints` and `imgpoints` to compute the camera calibra
 #### 1. Undistort a test road image.
 
 After camera calibration, I stored distortion and intrinsic matrix of the camera, so that I can apply the same matrices on images from the same camera len by using  `cv2.undistort()`. This is the result of undistortion on one of the test image:
-![undistort_test](/home/songshan/Documents/Self-Driving-Car-Nanodegree/CarND-Advanced-Lane-Lines/doc/undistort_test.png)
+![undistort_test](doc/undistort_test.png)
 
 #### 2. Used color transforms, gradients or other methods to create a thresholded binary image.
 
@@ -41,7 +41,7 @@ I used a combination of color and gradient thresholds to generate a binary image
 - Green color pixels are thresholded S channel from HLS color space. (170 - 255) 
 - Blue color pixels are thresholded gradient of L channel from HLS color space. (20 - 100)
 
-![binary](/home/songshan/Documents/Self-Driving-Car-Nanodegree/CarND-Advanced-Lane-Lines/doc/binary.png)
+![binary](doc/binary.png)
 
 #### 3. Used perspective transform to get a birds-eye view of the binary road image.
 
@@ -70,7 +70,7 @@ This resulted in the following source and destination points:
 
 I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image which contains straight lanes and its warped counterpart to verify that the lines appear parallel in the warped image.
 
-![perspective](/home/songshan/Documents/Self-Driving-Car-Nanodegree/CarND-Advanced-Lane-Lines/doc/perspective.png)
+![perspective](doc/perspective.png)
 
 #### 4. Identified lane-line pixels and fit their positions with a polynomial.
 
@@ -78,7 +78,7 @@ There are two approaches to identify the lane line pixels. One is windows search
 
 After identifying left pixels and right pixels, I fit them with a 2nd order polynomial kinda like this (white lines in the pictures) whose code can be found in `fit_polynomial` in line 187 of `lane.py`:
 
-![fit_polynomial](/home/songshan/Documents/Self-Driving-Car-Nanodegree/CarND-Advanced-Lane-Lines/doc/fit_polynomial.png)
+![fit_polynomial](doc/fit_polynomial.png)
 
 #### 5. Calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
@@ -88,7 +88,7 @@ I measured the curvature of both lanes in `measure_curvature_real()` in line 257
 
 I plotted detection back down onto the road in `unwarp_to_original()` in 12th code cell  in `advance-lane-lines.ipynb`.  Then display the curvature and position information in `display_text()` in `advance-lane-lines.ipynb`. Here is an example of my result on a test image:
 
-![result](/home/songshan/Documents/Self-Driving-Car-Nanodegree/CarND-Advanced-Lane-Lines/doc/result.png)
+![result](doc/result.png)
 
 ---
 
