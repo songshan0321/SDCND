@@ -11,6 +11,8 @@ class Lane():
         self.left_fit = None
         self.right_fit = None
         self.ploty = None
+        self.left_fit_trial = None
+        self.right_fit_trial = None
     
     def find_lane_pixels(self, binary_warped):
         # Take a histogram of the bottom half of the image
@@ -97,13 +99,22 @@ class Lane():
     
     def fit_poly(self, img_shape, leftx, lefty, rightx, righty):
         ### Fit a second order polynomial to each with np.polyfit() ###
-        left_fit = np.polyfit(lefty, leftx, 2)
-        right_fit = np.polyfit(righty, rightx, 2)
+        self.left_fit_trial = np.polyfit(lefty, leftx, 2)
+        self.right_fit_trial = np.polyfit(righty, rightx, 2)
+        
+        left_curverad, right_curverad = self.measure_curvature_real_input(self.left_fit_trial, self.right_fit_trial, self.ploty)
+        if self.check_lane_validity(left_curverad, right_curverad):
+            self.left_fit = self.left_fit_trial
+            self.right_fit = self.right_fit_trial
+            self.lane_detected = True
+        else:
+            self.lane_detected = False
+        
         # Generate x and y values for plotting
         ploty = np.linspace(0, img_shape[0]-1, img_shape[0])
         ### TO-DO: Calc both polynomials using ploty, left_fit and right_fit ###
-        left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
-        right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
+        left_fitx = self.left_fit[0]*ploty**2 + self.left_fit[1]*ploty + self.left_fit[2]
+        right_fitx = self.right_fit[0]*ploty**2 + self.right_fit[1]*ploty + self.right_fit[2]
 
         return left_fitx, right_fitx, ploty
 
@@ -175,6 +186,9 @@ class Lane():
 
     def fit_polynomial(self, binary_warped):
         # Find our lane pixels first
+        # Generate x and y values for plotting
+        self.ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0] )
+            
         if self.lane_detected:
             out_img = self.search_around_poly(binary_warped)
 
@@ -182,15 +196,25 @@ class Lane():
             leftx, lefty, rightx, righty, out_img = self.find_lane_pixels(binary_warped)
 
             ### Fit a second order polynomial to each using `np.polyfit` ###
-            self.left_fit = np.polyfit(lefty, leftx, 2)
-            self.right_fit = np.polyfit(righty, rightx, 2)
+            if self.left_fit is not None and self.right_fit is not None:
+                self.left_fit_trial = np.polyfit(lefty, leftx, 2)
+                self.right_fit_trial = np.polyfit(righty, rightx, 2)
+                
+                left_curverad, right_curverad = self.measure_curvature_real_input(self.left_fit_trial, self.right_fit_trial, self.ploty)
+                if self.check_lane_validity(left_curverad, right_curverad):
+                    self.left_fit = self.left_fit_trial
+                    self.right_fit = self.right_fit_trial
+                    self.lane_detected = True
+                else:
+                    self.lane_detected = False
+                    
+            else: # Catch first iteration which self.left_fit is None
+                self.left_fit = np.polyfit(lefty, leftx, 2)
+                self.right_fit = np.polyfit(righty, rightx, 2)
 
-            # Generate x and y values for plotting
-            self.ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0] )
             try:
                 left_fitx = self.left_fit[0]*self.ploty**2 + self.left_fit[1]*self.ploty + self.left_fit[2]
                 right_fitx = self.right_fit[0]*self.ploty**2 + self.right_fit[1]*self.ploty + self.right_fit[2]
-                self.lane_detected = True
             except TypeError:
                 # Avoids an error if `left` and `right_fit` are still none or incorrect
                 print('The function failed to fit a line!')
@@ -210,6 +234,25 @@ class Lane():
             cv2.polylines(out_img, [right_points], False, (255,255,255), thickness=2)
 
         return out_img
+    
+    def measure_curvature_real_input(self, left_fit, right_fit, ploty):
+        '''
+        Calculates the curvature of polynomial functions in meters.
+        '''
+        # Define conversions in x and y from pixels space to meters
+        ym_per_pix = 30/720 # meters per pixel in y dimension
+        xm_per_pix = 3.7/700 # meters per pixel in x dimension
+
+        # Define y-value where we want radius of curvature
+        # We'll choose the maximum y-value, corresponding to the bottom of the image
+        y_eval = np.max(ploty)
+
+        ##### Implement the calculation of R_curve (radius of curvature) #####
+        y_eval = ym_per_pix * y_eval
+        left_curverad = ((1 + (2*left_fit[0]*y_eval + left_fit[1])**2)**(3/2))/np.abs(2*left_fit[0])
+        right_curverad = ((1 + (2*right_fit[0]*y_eval + right_fit[1])**2)**(3/2))/np.abs(2*right_fit[0])
+
+        return left_curverad, right_curverad
     
     def measure_curvature_real(self):
         '''
@@ -237,7 +280,10 @@ class Lane():
         y_eval = np.max(self.ploty)
         x_left = self.left_fit[0]*y_eval**2 + self.left_fit[1]*y_eval + self.left_fit[2]        
         x_right = self.right_fit[0]*y_eval**2 + self.right_fit[1]*y_eval + self.right_fit[2]
-        center = x_right - x_left
-        dist_to_center = (center - img_shape[1]/2) * xm_per_pix
+        center = (x_right + x_left)/2
+        dist_to_center = (img_shape[1]/2 - center) * xm_per_pix
         
         return dist_to_center
+    
+    def check_lane_validity(self, left_curverad, right_curverad):
+        return True if (abs(left_curverad - right_curverad) < 2000 && ) else False
