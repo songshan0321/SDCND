@@ -251,13 +251,122 @@ with tf.Session() as sess:
 print('Test Accuracy: {}'.format(test_accuracy))
 ```
 
+### Avoid Naming Error
+
+TensorFlow uses a string identifier for Tensors and Operations called `name`. If a name is not given, TensorFlow will create one automatically. TensorFlow will give the first node the name `<Type>`, and then give the name `<Type>_<number>` for the subsequent nodes. Let's see how this can affect loading a model with a different order of `weights` and `bias`.
+
+Instead of letting TensorFlow set the `name` property, let's set it manually:
+
+```python
+import tensorflow as tf
+
+tf.reset_default_graph()
+
+save_file = 'model.ckpt'
+
+# Two Tensor Variables: weights and bias
+weights = tf.Variable(tf.truncated_normal([2, 3]), name='weights_0')
+bias = tf.Variable(tf.truncated_normal([3]), name='bias_0')
+
+saver = tf.train.Saver()
+
+# Print the name of Weights and Bias
+print('Save Weights: {}'.format(weights.name))
+print('Save Bias: {}'.format(bias.name))
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    saver.save(sess, save_file)
+
+# Remove the previous weights and bias
+tf.reset_default_graph()
+
+# Two Variables: weights and bias
+bias = tf.Variable(tf.truncated_normal([3]), name='bias_0')
+weights = tf.Variable(tf.truncated_normal([2, 3]) ,name='weights_0')
+
+saver = tf.train.Saver()
+
+# Print the name of Weights and Bias
+print('Load Weights: {}'.format(weights.name))
+print('Load Bias: {}'.format(bias.name))
+
+with tf.Session() as sess:
+    # Load the weights and bias - No Error
+    saver.restore(sess, save_file)
+
+print('Loaded Weights and Bias successfully.')
+```
 
 
 
+### Dropout
 
+```python
+keep_prob = tf.placeholder(tf.float32) # probability to keep units
+hidden_layer = tf.add(tf.matmul(features, weights[0]), biases[0])
+hidden_layer = tf.nn.relu(hidden_layer)
+hidden_layer = tf.nn.dropout(hidden_layer, keep_prob)
+logits = tf.add(tf.matmul(hidden_layer, weights[1]), biases[1])
 
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    output = sess.run(logits, feed_dict={keep_prob: 0.5})
+    print(output)
+```
 
+The code above illustrates how to apply dropout to a neural network.
 
+The [`tf.nn.dropout()`](https://www.tensorflow.org/api_docs/python/tf/nn/dropout) function takes in two parameters:
+
+1. `hidden_layer`: the tensor to which you would like to apply dropout
+2. `keep_prob`: the probability of keeping (i.e. *not* dropping) any given unit
+
+### Conv Net
+
+```python
+# Input/Image
+input = tf.placeholder(
+    tf.float32,
+    shape=[None, image_height, image_width, color_channels])
+
+# Weight and bias
+weight = tf.Variable(tf.truncated_normal(
+    [filter_size_height, filter_size_width, color_channels, k_output]))
+bias = tf.Variable(tf.zeros(k_output))
+
+# Apply Convolution
+conv_layer = tf.nn.conv2d(input, weight, strides=[1, 2, 2, 1], padding='SAME')
+# Add bias
+conv_layer = tf.nn.bias_add(conv_layer, bias)
+# Apply activation function
+conv_layer = tf.nn.relu(conv_layer)
+```
+
+**SAME Padding**, the output height and width are computed as:
+
+`out_height` = ceil(float(in_height) / float(strides[1]))
+
+`out_width` = ceil(float(in_width) / float(strides[2]))
+
+**VALID Padding**, the output height and width are computed as:
+
+`out_height` = ceil(float(in_height - filter_height + 1) / float(strides[1]))
+
+`out_width` = ceil(float(in_width - filter_width + 1) / float(strides[2]))
+
+### tf.nn.max_pool()
+
+```python
+# Apply Max Pooling
+conv_layer = tf.nn.max_pool(conv_layer,ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1],padding='SAME')
+```
+
+Recently, pooling layers have fallen out of favor. Some reasons are:
+
+- Recent datasets are so big and complex we're more concerned about underfitting.
+- Dropout is a much better regularizer.
+- Pooling results in a loss of information. Think about the max pooling operation as an example. We only keep the largest of *n* numbers, thereby disregarding *n-1* numbers completely.
 
 
 
