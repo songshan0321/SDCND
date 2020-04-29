@@ -94,7 +94,7 @@ smach==2.0.1
 smclib==1.8.3
 socketio==0.2.1
 tensorboard==1.14.0
-tensorflow==1.14.0
+tensorflow==1.15.2
 tensorflow-estimator==1.14.0
 termcolor==1.1.0
 tf2-py==0.6.5
