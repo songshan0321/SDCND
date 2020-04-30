@@ -5,18 +5,14 @@ import sklearn
 import math
 
 ### Load dataset from csv ####
+files = ['./my_data/driving_track1_log.csv', './my_data/driving_track2_log.csv', './my_data/driving_log.csv']
 samples = []
-with open('./data/driving_log.csv') as csvfile:
-    reader = csv.reader(csvfile)
-    next(reader, None)
-    for line in reader:
-        samples.append(line)
-
-# with open('./recover_data/driving_log.csv') as csvfile:
-#     reader = csv.reader(csvfile)
-#     next(reader, None)
-#     for line in reader:
-#         samples.append(line)
+for filepath in files:
+    with open(filepath) as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader, None)
+        for line in reader:
+            samples.append(line)
 
 from sklearn.model_selection import train_test_split
 train_samples, valid_samples = train_test_split(samples, test_size=0.2)
@@ -25,17 +21,6 @@ def flip_data(image, angle):
     image_flipped = np.fliplr(image)
     angle_flipped = -angle
     return image_flipped, angle_flipped
-
-# def random_shift(image, angle):
-#     h,w,_ = image.shape
-#     # allow shift up to px pixels in x and y directions
-#     px = 40
-#     x = np.random.randint(-px,px)
-#     T = np.float32([[1, 0, x], [0, 1, 0]]) 
-#     image_shifted = cv2.warpAffine(image, T, (w, h)) 
-#     angle_shifted = 0.02 * px
-#     return image_shifted, angle_shifted
-    
 
 def generator(samples, batch_size=32, train_mode=False):
     print("Number of original data: {0}".format(len(samples)))
@@ -46,12 +31,12 @@ def generator(samples, batch_size=32, train_mode=False):
         center_angle = float(sample[3])
         if train_mode and abs(center_angle) < 0.0001:
             continue
-#             num = np.random.randint(0,100)
-#             if num >= 30:
-#                 continue
+            # num = np.random.randint(0,100)
+            # if num >= 30:
+            #     continue
                 
         filename = sample[0].split('/')[-1]
-        current_path = os.path.join('./data/IMG/', filename)
+        current_path = os.path.join('./my_data/IMG/', filename)
         center_image = cv2.imread(current_path)
         
         # Pre-processing
@@ -65,10 +50,10 @@ def generator(samples, batch_size=32, train_mode=False):
         images.append(center_image)
         angles.append(center_angle)
         
-        if train_mode:
-            image_flipped, angle_flipped = flip_data(center_image, center_angle)
-            images.append(image_flipped)
-            angles.append(angle_flipped)
+#         if train_mode:
+#             image_flipped, angle_flipped = flip_data(center_image, center_angle)
+#             images.append(image_flipped)
+#             angles.append(angle_flipped)
         
     X = np.array(images)
     y = np.array(angles)
@@ -91,17 +76,18 @@ from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
-batch_size = 128
+batch_size = 256
 
 model = Sequential()
 model.add(Lambda(lambda x: x / 255 - 0.5, input_shape=(160, 320, 3)))
-model.add(Cropping2D(cropping=((80, 25),(0, 0))))
+model.add(Cropping2D(cropping=((50, 25),(0, 0))))
 model.add(Convolution2D(24, (5, 5), strides=2, activation='relu'))
 model.add(Convolution2D(36, (5, 5), strides=2, activation='relu'))
 model.add(Convolution2D(48, (5, 5), strides=1, activation='relu'))
 model.add(Convolution2D(64, (3, 3), strides=1, activation='relu'))
+model.add(Dropout(0.5))
 model.add(Convolution2D(64, (3, 3), strides=1, activation='relu'))
-model.add(Dropout(0.3))
+model.add(Dropout(0.5))
 model.add(Flatten())
 model.add(Dense(100))
 model.add(Dense(50))
@@ -111,8 +97,8 @@ model.add(Dense(1))
 # model.summary()
 
 #### Training
-train_generator = generator(train_samples, train_mode=True)
-valid_generator = generator(valid_samples, train_mode=False)
+train_generator = generator(train_samples, batch_size=batch_size, train_mode=True)
+valid_generator = generator(valid_samples, batch_size=batch_size, train_mode=False)
 
 model.compile(loss='mse', optimizer='adam')
 
