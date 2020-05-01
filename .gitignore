@@ -1,3 +1,9 @@
 data/
 CarND-Behavioral-Cloning-P3/run1/*
 CarND-Behavioral-Cloning-P3/venv
+CarND-Behavioral-Cloning-P3/data_backup
+CarND-Behavioral-Cloning-P3/my_data
+CarND-Behavioral-Cloning-P3/*.mp4
+CarND-Behavioral-Cloning-P3/IMG
+CarND-Behavioral-Cloning-P3/track1
+CarND-Behavioral-Cloning-P3/track2

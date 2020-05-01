@@ -5,7 +5,7 @@ import sklearn
 import math
 
 ### Load dataset from csv ####
-files = ['./my_data/driving_track1_log.csv', './my_data/driving_track2_log.csv', './my_data/driving_log.csv']
+files = ['./data_backup/driving_log.csv']
 samples = []
 for filepath in files:
     with open(filepath) as csvfile:
@@ -31,29 +31,20 @@ def generator(samples, batch_size=32, train_mode=False):
         center_angle = float(sample[3])
         if train_mode and abs(center_angle) < 0.0001:
             continue
-            # num = np.random.randint(0,100)
-            # if num >= 30:
-            #     continue
                 
         filename = sample[0].split('/')[-1]
-        current_path = os.path.join('./my_data/IMG/', filename)
+        current_path = os.path.join('./data_backup/IMG/', filename)
         center_image = cv2.imread(current_path)
         
-        # Pre-processing
-#         print(center_image.shape)
         center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
-#         center_image = center_image[:,:,np.newaxis]
-#         print(center_image.shape)
-#         if abs(center_angle) < 0.01 and augmentation:
-#             center_image, center_angle = random_shift(center_image, center_angle)
         
         images.append(center_image)
         angles.append(center_angle)
         
-#         if train_mode:
-#             image_flipped, angle_flipped = flip_data(center_image, center_angle)
-#             images.append(image_flipped)
-#             angles.append(angle_flipped)
+        if train_mode:
+            image_flipped, angle_flipped = flip_data(center_image, center_angle)
+            images.append(image_flipped)
+            angles.append(angle_flipped)
         
     X = np.array(images)
     y = np.array(angles)
@@ -110,8 +101,6 @@ history_object = model.fit_generator(train_generator, \
                                     validation_steps= math.ceil(len(valid_samples)/batch_size), \
                                     epochs=20, verbose=1, \
                                     callbacks=[early_stopping, model_checkpoint])
-
-# model.save('model.h5')
 
 print(history_object.history.keys())
 
