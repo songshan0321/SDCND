@@ -2,7 +2,7 @@
 
 ## Result
 
-<img src="/home/shan/github/SDCND/CarND-Path-Planning-Project/media/highway-driving.gif" alt="highway-driving" style="zoom:200%;" />
+<img src="./media/highway-driving.gif" alt="highway-driving" style="zoom:200%;" />
 
 ## Project Description
 
