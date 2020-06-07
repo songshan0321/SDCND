@@ -1,0 +1,17 @@
+name: carnd-advdl-odlab
+channels:
+    - https://conda.anaconda.org/menpo
+    - conda-forge
+dependencies:
+    - pip
+    - python==3.7
+    - pip:
+        - numpy
+        - matplotlib
+        - jupyter
+        - pillow
+        - scipy
+        - ffmpeg
+        - imageio
+        - moviepy
+        - tensorflow-gpu
