@@ -17,7 +17,7 @@ class Controller(object):
         ki = 0.1
         kd = 0.
         mn = 0. # Minimum throttle value
-        mx = 0.2 # Maximum throttle value
+        mx = 0.5 # Maximum throttle value
         self.throttle_controller = PID(kp, ki, kd, mn, mx)
 
         tau = 0.5 # 1/(2*pi*tau) = cutoff frequency
@@ -59,15 +59,23 @@ class Controller(object):
         throttle = self.throttle_controller.step(vel_error, sample_time)
         brake = 0.
 
+        # print("vel_error", vel_error)
+
         # Give a maximum brake to hold the car in place if target vel is zero and current vel is near to zero
         if linear_vel == 0. and current_linear_vel < 0.1:
-            throttle = 0.
+            throttle = 0.0
             brake = 400 # Torque N*m
 
         # Give a reasonable brake to slow down the car if target vel is lower than current vel and throttle is near to zero
         elif throttle < .1 and vel_error < 0:
-            throttle = 0.
-            decel = max(vel_error, self.decel_limit) # Avoid too big negative error
-            brake = abs(decel)*self.vehicle_mass*self.wheel_radius # Torque N*m
+            throttle = 0.0
+            
+            decel = max(vel_error, self.decel_limit[0]) # Avoid too big negative error
+            print("vel_error", vel_error)
+            print("decel", decel)
+            print("vehicle_mass", self.vehicle_mass)
+            print("wheel_radius", self.wheel_radius)
+            brake = abs(decel)*self.vehicle_mass[0]*self.wheel_radius[0] # Torque N*m
+            print("brake", brake)
     
         return throttle, brake, steering
