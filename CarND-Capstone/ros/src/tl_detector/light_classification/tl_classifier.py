@@ -34,9 +34,7 @@ class TLClassifier(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        #TODO implement light color prediction
-#         image_np = np.asarray(image)
-        
+        # implement light color prediction
         with self.detection_graph.as_default():
             with tf.Session(graph=self.detection_graph) as sess:
                 
