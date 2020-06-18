@@ -84,7 +84,7 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
-        if self.image_counter < 3:
+        if self.image_counter < 2:
             self.image_counter += 1
             return
         self.image_counter = 0
